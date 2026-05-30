@@ -40,6 +40,10 @@
             const [password, setPassword] = useState('');
             const [loading, setLoading] = useState(false);
             const [subData, setSubData] = useState(null);
+            
+            // Estado para crear nueva contraseña
+            const [newPassword, setNewPassword] = useState('');
+            const [passwordMsg, setPasswordMsg] = useState('');
 
             useEffect(() => {
                 supabase.auth.getSession().then(({ data: { session } }) => {
@@ -66,17 +70,29 @@
                 setLoading(false);
             };
 
+            const handleUpdatePassword = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const { error } = await supabase.auth.updateUser({ password: newPassword });
+                if (error) {
+                    setPasswordMsg("Error al guardar: " + error.message);
+                } else {
+                    setPasswordMsg("¡Contraseña guardada con éxito!");
+                    setNewPassword('');
+                }
+                setLoading(false);
+            };
+
             const handleCheckout = async () => {
                 setLoading(true);
                 try {
-                    // AQUÍ HACES LA PETICIÓN A VERCEL (A tu Pieza 2)
                     const response = await fetch('/api/create-checkout-session', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ userId: session.user.id, email: session.user.email })
                     });
                     const data = await response.json();
-                    if(data.url) window.location.href = data.url; // Redirige a Stripe
+                    if(data.url) window.location.href = data.url; 
                     else alert("Error al conectar con Stripe");
                 } catch(e) {
                     alert("Error en el servidor");
@@ -85,19 +101,20 @@
             };
 
             if (!session) {
-                // PANTALLA DE LOGIN
+                // PANTALLA DE LOGIN (Logo ampliado y textos modificados)
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
-                        <img src={LOGO_URL} className="h-20 mb-10 opacity-90" alt="Bokalia" />
+                        <img src={LOGO_URL} className="h-28 md:h-36 mb-10 opacity-90 object-contain drop-shadow-sm" alt="Bokalia" />
+                        
                         <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-xl w-full max-w-md border border-white/40">
                             <h2 className="text-2xl font-bold mb-6 text-center text-darkText">Acceso Socios</h2>
                             <form onSubmit={handleLogin} className="space-y-4">
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Email de tu local</label>
+                                    <label className="block text-sm font-medium mb-1 opacity-70">Email personal</label>
                                     <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Contraseña</label>
+                                    <label className="block text-sm font-medium mb-1 opacity-70">Contraseña (la que has creado)</label>
                                     <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
                                 </div>
                                 <button disabled={loading} className="w-full bg-primary hover:bg-[#c9432c] text-white py-3 rounded-full font-semibold transition shadow-md mt-6">
@@ -110,25 +127,26 @@
                 );
             }
 
-            // PANTALLA DEL DASHBOARD (CLIENTE LOGUEADO)
+            // PANTALLA DEL DASHBOARD
             const isActive = subData?.status === 'activa';
 
             return (
-                <div className="min-h-screen">
+                <div className="min-h-screen pb-20">
+                    {/* Barra de navegación (Logo ampliado) */}
                     <nav className="bg-white/60 border-b border-darkText/10 px-6 py-4 flex justify-between items-center">
-                        <img src={LOGO_URL} className="h-10" alt="Bokalia" />
+                        <img src={LOGO_URL} className="h-14 md:h-16 object-contain" alt="Bokalia" />
                         <button onClick={() => supabase.auth.signOut()} className="text-sm font-medium opacity-60 hover:text-primary transition">Cerrar Sesión</button>
                     </nav>
 
                     <div className="max-w-4xl mx-auto p-6 mt-10">
                         <h1 className="text-3xl font-bold mb-2">Bienvenido, Gestor.</h1>
-                        <p className="text-darkText/70 mb-10">Panel de administración de Bokalia Socio.</p>
+                        <p className="text-darkText/70 mb-10">Conectado como: <span className="font-semibold">{session.user.email}</span></p>
 
                         <div className="bg-white rounded-3xl p-8 shadow-sm border border-white/50 mb-8">
                             <div className="flex justify-between items-center mb-6 border-b border-darkText/10 pb-6">
                                 <div>
                                     <h2 className="text-xl font-bold">Estado del Sistema</h2>
-                                    <p className="text-sm opacity-70">Gestión de tu motor de reservas y menús</p>
+                                    <p className="text-sm opacity-70">Control de tu cuenta Bokalia Socio</p>
                                 </div>
                                 <span className={`px-4 py-1 rounded-full text-sm font-bold text-white ${isActive ? 'bg-secondary1' : 'bg-red-500'}`}>
                                     {isActive ? 'SISTEMA ACTIVO' : 'SISTEMA INACTIVO'}
@@ -140,24 +158,55 @@
                                     <h3 className="text-lg font-bold text-primary mb-2">Suscripción Requerida</h3>
                                     <p className="text-sm opacity-80 mb-6">Para arrancar el motor de reservas y el sistema operativo de tu local, necesitas activar tu suscripción.</p>
                                     <button onClick={handleCheckout} disabled={loading} className="bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-[#c9432c] hover:-translate-y-1 transition shadow-lg">
-                                        {loading ? 'Conectando con Stripe...' : 'Activar sistema de reservas (30 días gratis)'}
+                                        {loading ? 'Conectando con Stripe...' : 'Activar sistema (30 días gratis)'}
                                     </button>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5">
-                                        <h3 className="font-bold mb-2">Motor de Reservas</h3>
-                                        <p className="text-sm opacity-70 mb-4">El sistema está online y aceptando clientes.</p>
-                                        <button className="text-primary text-sm font-bold hover:underline">Configurar Mesas →</button>
-                                    </div>
-                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5">
-                                        <h3 className="font-bold mb-2">Facturación (Stripe)</h3>
-                                        <p className="text-sm opacity-70 mb-4">Suscripción recurrente (50€/mes). Al día.</p>
-                                        <button className="text-primary text-sm font-bold hover:underline">Ver Historial de Facturas →</button>
+                                <div className="grid grid-cols-1 gap-6">
+                                    {/* BLOQUE DE FACTURACIÓN CON LINK DE STRIPE */}
+                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5 flex flex-col sm:flex-row justify-between items-start sm:items-center">
+                                        <div className="mb-4 sm:mb-0">
+                                            <h3 className="font-bold mb-2 text-lg">Facturación y Suscripción</h3>
+                                            <p className="text-sm opacity-70 mb-1">Suscripción recurrente (50€/mes). Al día.</p>
+                                            <p className="text-xs opacity-50 max-w-sm mt-2">El historial de facturas está alojado en Stripe. No ocupa espacio en tus bases de datos.</p>
+                                        </div>
+                                        <a 
+                                            href="https://billing.stripe.com/p/login/28E14nfz49W84Ex63M00000" 
+                                            target="_blank" 
+                                            rel="noopener noreferrer"
+                                            className="bg-white border border-darkText/10 text-darkText px-6 py-3 rounded-full text-sm font-bold hover:border-primary hover:text-primary transition shadow-sm cursor-pointer"
+                                        >
+                                            Gestionar / Cancelar Suscripción →
+                                        </a>
                                     </div>
                                 </div>
                             )}
                         </div>
+
+                        {/* BLOQUE DE CONTRASEÑA */}
+                        <div className="bg-white/60 rounded-3xl p-8 shadow-sm border border-white/50">
+                            <h2 className="text-xl font-bold mb-2">Seguridad de tu cuenta</h2>
+                            <p className="text-sm opacity-70 mb-6">Si has accedido mediante una invitación a tu correo personal, establece aquí tu contraseña para poder entrar la próxima vez de forma normal.</p>
+                            
+                            <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row gap-4 items-start">
+                                <div className="w-full sm:w-2/3">
+                                    <input 
+                                        type="password" 
+                                        placeholder="Escribe tu nueva contraseña" 
+                                        value={newPassword} 
+                                        onChange={(e)=>setNewPassword(e.target.value)} 
+                                        required 
+                                        minLength="6"
+                                        className="w-full px-4 py-3 rounded-xl bg-white border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" 
+                                    />
+                                </div>
+                                <button disabled={loading} className="w-full sm:w-1/3 bg-darkText text-white py-3 rounded-xl font-semibold hover:bg-black transition">
+                                    {loading ? 'Guardando...' : 'Guardar Contraseña'}
+                                </button>
+                            </form>
+                            {passwordMsg && <p className="mt-3 text-sm font-bold text-primary">{passwordMsg}</p>}
+                        </div>
+
                     </div>
                 </div>
             );
