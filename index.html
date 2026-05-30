@@ -3,211 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Socios | Bokalia</title>
+    <title>Bokalia | Automatización Premium para Hostelería</title>
+    
+    <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/dstradee/Bokalia/2ab5ec2e9fa305d65e10b062aaa10ccdbdd0bf76/favicon.jpg">
+    
+    <!-- Fuentes: Montserrat -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <!-- Babel -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Supabase JS -->
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { primary: '#E34F36', secondary1: '#747353', neutral: '#F6E5D3', darkText: '#3B332C' },
+                    colors: {
+                        primary: '#E34F36',
+                        secondary1: '#747353',
+                        secondary2: '#D4A757',
+                        neutral: '#F6E5D3',
+                        darkText: '#3B332C',
+                    },
                     fontFamily: { sans: ['Montserrat', 'sans-serif'] },
+                    backgroundImage: {
+                        'bokalia-pattern': "url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cpath d=\"M54.627 0l.83.83v58.34h-58.34l-.83-.83L54.627 0zM29.627 0l.83.83v28.34h-28.34l-.83-.83L29.627 0z\" fill=\"%23E34F36\" fill-opacity=\"0.03\" fill-rule=\"evenodd\"/%3E%3C/svg%3E')"
+                    }
                 }
             }
         }
     </script>
-    <style>body { font-family: 'Montserrat', sans-serif; background-color: #F6E5D3; color: #3B332C; }</style>
+
+    <style>
+        body { font-family: 'Montserrat', sans-serif; background-color: #F6E5D3; color: #3B332C; }
+        .smooth-shadow { box-shadow: 0 10px 30px rgba(59, 51, 44, 0.05); }
+        .glass-panel { background: rgba(246, 229, 211, 0.85); backdrop-filter: blur(12px); }
+    </style>
 </head>
-<body class="bg-neutral text-darkText antialiased">
+<body class="bg-neutral text-darkText antialiased bg-bokalia-pattern">
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect } = React;
-        const supabase = supabase.createClient('https://nlzbhbxixjeafvedijst.supabase.co', 'sb_publishable_mbC-1Ahn8tUb9FujRHxxKQ_aYqY-blz');
-        const LOGO_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/d8cc49893cad4c9676adc8b35373c2495decdba2/Logosinfondo.png";
+        const { useState } = React;
 
-        const App = () => {
-            const [session, setSession] = useState(null);
-            const [email, setEmail] = useState('');
-            const [password, setPassword] = useState('');
-            const [loading, setLoading] = useState(false);
-            const [subData, setSubData] = useState(null);
-            
-            // Estado para crear nueva contraseña
-            const [newPassword, setNewPassword] = useState('');
-            const [passwordMsg, setPasswordMsg] = useState('');
+        const LOGO_NAV_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/d8cc49893cad4c9676adc8b35373c2495decdba2/Logosinfondo.png";
+        const LOGO_MAIN_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/ffbae21866e0c780c814f676ef05c311229b700a/Bokalia%20main%20sin%20fondo.png";
 
-            useEffect(() => {
-                supabase.auth.getSession().then(({ data: { session } }) => {
-                    setSession(session);
-                    if (session) fetchSubData(session.user.id);
-                });
-
-                supabase.auth.onAuthStateChange((_event, session) => {
-                    setSession(session);
-                    if (session) fetchSubData(session.user.id);
-                });
-            }, []);
-
-            const fetchSubData = async (userId) => {
-                const { data, error } = await supabase.from('subscriptions').select('*').eq('id', userId).single();
-                if (data) setSubData(data);
-            };
-
-            const handleLogin = async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                const { error } = await supabase.auth.signInWithPassword({ email, password });
-                if (error) alert("Error: " + error.message);
-                setLoading(false);
-            };
-
-            const handleUpdatePassword = async (e) => {
-                e.preventDefault();
-                setLoading(true);
-                const { error } = await supabase.auth.updateUser({ password: newPassword });
-                if (error) {
-                    setPasswordMsg("Error al guardar: " + error.message);
+        // Redirige por defecto a clientes.html si no tiene un onClickAction definido (como el mailto)
+        const PrimaryActionBtn = ({ text, className, onClickAction }) => {
+            const handleClick = () => {
+                if(onClickAction) {
+                    onClickAction();
                 } else {
-                    setPasswordMsg("¡Contraseña guardada con éxito!");
-                    setNewPassword('');
+                    window.location.href = 'clientes.html';
                 }
-                setLoading(false);
             };
-
-            const handleCheckout = async () => {
-                setLoading(true);
-                try {
-                    const response = await fetch('/api/create-checkout-session', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ userId: session.user.id, email: session.user.email })
-                    });
-                    const data = await response.json();
-                    if(data.url) window.location.href = data.url; 
-                    else alert("Error al conectar con Stripe");
-                } catch(e) {
-                    alert("Error en el servidor");
-                }
-                setLoading(false);
-            };
-
-            if (!session) {
-                // PANTALLA DE LOGIN (Logo ampliado y textos modificados)
-                return (
-                    <div className="min-h-screen flex flex-col justify-center items-center p-4">
-                        <img src={LOGO_URL} className="h-28 md:h-36 mb-10 opacity-90 object-contain drop-shadow-sm" alt="Bokalia" />
-                        
-                        <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-xl w-full max-w-md border border-white/40">
-                            <h2 className="text-2xl font-bold mb-6 text-center text-darkText">Acceso Socios</h2>
-                            <form onSubmit={handleLogin} className="space-y-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Email personal</label>
-                                    <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium mb-1 opacity-70">Contraseña (la que has creado)</label>
-                                    <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
-                                </div>
-                                <button disabled={loading} className="w-full bg-primary hover:bg-[#c9432c] text-white py-3 rounded-full font-semibold transition shadow-md mt-6">
-                                    {loading ? 'Entrando...' : 'Iniciar Sesión'}
-                                </button>
-                            </form>
-                        </div>
-                        <a href="index.html" className="mt-8 text-sm opacity-60 hover:opacity-100 transition">Volver a la web</a>
-                    </div>
-                );
-            }
-
-            // PANTALLA DEL DASHBOARD
-            const isActive = subData?.status === 'activa';
 
             return (
-                <div className="min-h-screen pb-20">
-                    {/* Barra de navegación (Logo ampliado) */}
-                    <nav className="bg-white/60 border-b border-darkText/10 px-6 py-4 flex justify-between items-center">
-                        <img src={LOGO_URL} className="h-14 md:h-16 object-contain" alt="Bokalia" />
-                        <button onClick={() => supabase.auth.signOut()} className="text-sm font-medium opacity-60 hover:text-primary transition">Cerrar Sesión</button>
-                    </nav>
+                <button 
+                    onClick={handleClick} 
+                    className={`relative flex items-center justify-center font-semibold rounded-full transition-all duration-300 bg-primary hover:bg-[#c9432c] hover:shadow-lg hover:-translate-y-1 text-white px-8 py-3 ${className}`}
+                >
+                    {text}
+                </button>
+            );
+        };
 
-                    <div className="max-w-4xl mx-auto p-6 mt-10">
-                        <h1 className="text-3xl font-bold mb-2">Bienvenido, Gestor.</h1>
-                        <p className="text-darkText/70 mb-10">Conectado como: <span className="font-semibold">{session.user.email}</span></p>
+        const Navbar = () => (
+            <nav className="fixed top-0 w-full z-50 glass-panel border-b border-secondary2/20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between h-24 items-center">
+                        <div className="flex-shrink-0 flex items-center h-full py-3">
+                            <img className="h-full w-auto object-contain origin-left" src={LOGO_NAV_URL} alt="Bokalia Logo" />
+                        </div>
+                        <div className="hidden md:flex space-x-8 items-center">
+                            <a href="#nosotros" className="text-darkText hover:text-primary transition-colors font-medium">Sobre Nosotros</a>
+                            <a href="#features" className="text-darkText hover:text-primary transition-colors font-medium">Servicios</a>
+                            <a href="#pricing" className="text-darkText hover:text-primary transition-colors font-medium">Bokalia Socio</a>
+                            <PrimaryActionBtn text="Acceso Clientes" className="px-6 py-2 text-sm" />
+                        </div>
+                    </div>
+                </div>
+            </nav>
+        );
 
-                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-white/50 mb-8">
-                            <div className="flex justify-between items-center mb-6 border-b border-darkText/10 pb-6">
-                                <div>
-                                    <h2 className="text-xl font-bold">Estado del Sistema</h2>
-                                    <p className="text-sm opacity-70">Control de tu cuenta Bokalia Socio</p>
-                                </div>
-                                <span className={`px-4 py-1 rounded-full text-sm font-bold text-white ${isActive ? 'bg-secondary1' : 'bg-red-500'}`}>
-                                    {isActive ? 'SISTEMA ACTIVO' : 'SISTEMA INACTIVO'}
-                                </span>
+        const FeatureCard = ({ title, description, iconColor, svgPath }) => (
+            <div className={`bg-white/60 backdrop-blur-sm p-8 rounded-2xl smooth-shadow border border-white/50 hover:border-${iconColor}/30 transition-all duration-300`}>
+                <div className={`w-14 h-14 rounded-2xl mb-6 flex items-center justify-center bg-${iconColor}/10 text-${iconColor}`}>
+                    <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={svgPath}></path></svg>
+                </div>
+                <h3 className="text-xl font-bold mb-3 text-darkText">{title}</h3>
+                <p className="text-darkText/80 font-light leading-relaxed">{description}</p>
+            </div>
+        );
+
+        const App = () => {
+            return (
+                <div className="min-h-screen flex flex-col font-sans selection:bg-primary selection:text-white">
+                    <Navbar />
+                    <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+                        <div className="max-w-7xl mx-auto text-center relative mt-4 md:mt-0">
+                            <div className="relative z-0 -mt-20 md:-mt-32 -mb-16 md:-mb-32">
+                                <img src={LOGO_MAIN_URL} alt="Bokalia Main" className="w-full max-w-[800px] h-[350px] md:h-[500px] mx-auto object-contain drop-shadow-sm pointer-events-none" />
                             </div>
+                            <div className="relative z-10">
+                                <h1 className="text-5xl md:text-7xl font-bold text-darkText mb-6 tracking-tight leading-tight">La Esencia de tu Local, <br/><span className="text-primary italic font-serif">Automatizada.</span></h1>
+                                <p className="mt-4 max-w-2xl text-lg md:text-xl text-darkText/70 mx-auto font-light mb-10">Sistema premium de gestión para hostelería. Simplifica tus reservas, empodera a tu equipo y analiza tus métricas en tiempo real con una interfaz sin ruido visual.</p>
+                                <a href="#nosotros" className="text-darkText font-medium hover:text-primary transition-colors border-b border-darkText/20 hover:border-primary pb-1">Conoce Nuestra Filosofía</a>
+                            </div>
+                            <div className="mt-20 relative max-w-5xl mx-auto z-10">
+                                <div className="absolute inset-0 bg-gradient-to-t from-neutral to-transparent z-10"></div>
+                                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200" alt="Interior bar" className="rounded-t-3xl shadow-2xl object-cover h-[450px] w-full border-t border-x border-white/40" />
+                            </div>
+                        </div>
+                    </main>
 
-                            {!isActive ? (
-                                <div className="bg-neutral/50 p-6 rounded-2xl text-center border border-primary/20">
-                                    <h3 className="text-lg font-bold text-primary mb-2">Suscripción Requerida</h3>
-                                    <p className="text-sm opacity-80 mb-6">Para arrancar el motor de reservas y el sistema operativo de tu local, necesitas activar tu suscripción.</p>
-                                    <button onClick={handleCheckout} disabled={loading} className="bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-[#c9432c] hover:-translate-y-1 transition shadow-lg">
-                                        {loading ? 'Conectando con Stripe...' : 'Activar sistema (30 días gratis)'}
-                                    </button>
+                    <section id="nosotros" className="py-24 relative z-20">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+                            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-8 tracking-tight">Tecnología que respeta tu oficio.</h2>
+                            <p className="text-xl md:text-2xl text-darkText leading-relaxed font-light mb-12">Sabemos perfectamente cómo es un viernes por la noche. El local a pleno rendimiento, el teléfono sonando sin parar, el equipo corriendo y el caos amenazando con desordenar el servicio. Bokalia no nace en una oficina de Silicon Valley, nace pisando la calle y entendiendo la realidad de la hostelería local.</p>
+                            <div className="pl-0 md:pl-8 md:border-l-2 md:border-primary/40 mt-12">
+                                <h3 className="text-2xl md:text-3xl font-bold text-primary mb-6">Nuestro objetivo es simple: Devolverte el control.</h3>
+                                <div className="space-y-6 text-lg text-darkText/80 font-light leading-relaxed">
+                                    <p>No queremos cambiar la esencia de tu negocio ni complicarle la vida a tus camareros con curvas de aprendizaje interminables. Desarrollamos herramientas invisibles pero potentes. Queremos que dejes de perder tiempo apuntando nombres en libretas, que tus zonas de reservado estén gestionadas al milímetro y que los clientes fantasma no te hagan perder dinero.</p>
+                                    <p className="font-medium text-darkText text-xl italic pt-4">Tú pones el alma y el buen servicio. Nosotros ponemos el orden para que todo funcione como un reloj.</p>
                                 </div>
-                            ) : (
-                                <div className="grid grid-cols-1 gap-6">
-                                    {/* BLOQUE DE FACTURACIÓN CON LINK DE STRIPE */}
-                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                                        <div className="mb-4 sm:mb-0">
-                                            <h3 className="font-bold mb-2 text-lg">Facturación y Suscripción</h3>
-                                            <p className="text-sm opacity-70 mb-1">Suscripción recurrente (50€/mes). Al día.</p>
-                                            <p className="text-xs opacity-50 max-w-sm mt-2">El historial de facturas está alojado en Stripe. No ocupa espacio en tus bases de datos.</p>
-                                        </div>
-                                        <a 
-                                            href="https://billing.stripe.com/p/login/28E14nfz49W84Ex63M00000" 
-                                            target="_blank" 
-                                            rel="noopener noreferrer"
-                                            className="bg-white border border-darkText/10 text-darkText px-6 py-3 rounded-full text-sm font-bold hover:border-primary hover:text-primary transition shadow-sm cursor-pointer"
-                                        >
-                                            Gestionar / Cancelar Suscripción →
-                                        </a>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="features" className="py-24 relative z-20">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                            <div className="text-center mb-16"><h2 className="text-3xl md:text-4xl font-bold text-darkText mb-4">Herramientas Diseñadas con Propósito</h2></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <FeatureCard title="Reservas en Tiempo Real" description="Motor de reservas inteligente que sincroniza la disponibilidad de mesas al instante." iconColor="primary" svgPath="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                <FeatureCard title="Menú Interactivo" description="Carta digital minimalista en los dispositivos de tus clientes." iconColor="secondary2" svgPath="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
+                                <FeatureCard title="Panel para Camareros" description="Interfaz mobile-first ultra rápida para entornos de poca luz." iconColor="secondary1" svgPath="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                <FeatureCard title="Métricas Manager" description="Dashboard analítico sin ruido visual." iconColor="darkText" svgPath="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </div>
+                        </div>
+                    </section>
+
+                    <section id="pricing" className="py-24 relative bg-white/40">
+                        <div className="max-w-4xl mx-auto px-4 text-center">
+                            <div className="bg-white rounded-3xl p-10 md:p-14 smooth-shadow border border-secondary2/30 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 bg-secondary2 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">EXCLUSIVO</div>
+                                <div className="flex flex-col md:flex-row justify-between items-center text-left">
+                                    <div className="mb-8 md:mb-0">
+                                        <h3 className="text-2xl font-bold mb-2 text-primary">Bokalia Socio</h3>
+                                        <p className="text-darkText/70 mb-6 font-light">El modelo integral para locales asociados a la plataforma.</p>
+                                    </div>
+                                    <div className="text-center md:text-right bg-neutral/30 p-8 rounded-2xl w-full md:w-auto flex flex-col items-center md:items-end">
+                                        <div className="text-5xl font-bold text-darkText mb-2">50€<span className="text-lg text-darkText/50 font-normal">/mes</span></div>
+                                        <PrimaryActionBtn text="Solicitar Acceso" className="w-full" onClickAction={() => window.location.href = "mailto:bokaliaa@hotmail.com?subject=Solicitud de Acceso - Bokalia Socio"} />
                                     </div>
                                 </div>
-                            )}
+                            </div>
                         </div>
+                    </section>
 
-                        {/* BLOQUE DE CONTRASEÑA */}
-                        <div className="bg-white/60 rounded-3xl p-8 shadow-sm border border-white/50">
-                            <h2 className="text-xl font-bold mb-2">Seguridad de tu cuenta</h2>
-                            <p className="text-sm opacity-70 mb-6">Si has accedido mediante una invitación a tu correo personal, establece aquí tu contraseña para poder entrar la próxima vez de forma normal.</p>
-                            
-                            <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row gap-4 items-start">
-                                <div className="w-full sm:w-2/3">
-                                    <input 
-                                        type="password" 
-                                        placeholder="Escribe tu nueva contraseña" 
-                                        value={newPassword} 
-                                        onChange={(e)=>setNewPassword(e.target.value)} 
-                                        required 
-                                        minLength="6"
-                                        className="w-full px-4 py-3 rounded-xl bg-white border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" 
-                                    />
-                                </div>
-                                <button disabled={loading} className="w-full sm:w-1/3 bg-darkText text-white py-3 rounded-xl font-semibold hover:bg-black transition">
-                                    {loading ? 'Guardando...' : 'Guardar Contraseña'}
-                                </button>
-                            </form>
-                            {passwordMsg && <p className="mt-3 text-sm font-bold text-primary">{passwordMsg}</p>}
+                    <footer className="border-t border-darkText/10 bg-white/60 pt-16 pb-8 mt-auto">
+                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
+                            <img className="h-10 md:h-12 w-auto mb-6 opacity-80 grayscale" src={LOGO_NAV_URL} alt="Bokalia Logo" />
+                            <p className="text-sm text-darkText/40">© 2026 Bokalia. Tecnología que respeta tu oficio.</p>
                         </div>
-
-                    </div>
+                    </footer>
                 </div>
             );
         };
