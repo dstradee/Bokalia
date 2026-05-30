@@ -150,11 +150,14 @@
                     <Navbar />
 
                     {/* HERO SECTION */}
-                    <main className="flex-grow pt-32 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
-                        <div className="max-w-7xl mx-auto text-center mt-6 md:mt-10 relative">
+                    <main className="flex-grow pt-24 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+                        <div className="max-w-7xl mx-auto text-center relative mt-4 md:mt-0">
                             
-                            {/* LOGO GIGANTE CON MÁRGENES NEGATIVOS PARA SOLAPAR TEXTO */}
-                            <div className="relative z-0 -mb-16 md:-mb-32">
+                            {/* LOGO GIGANTE: 
+                                -mt-20 md:-mt-32 "tira" de la imagen hacia arriba para eliminar el espacio transparente superior
+                                -mb-16 md:-mb-32 hace que el texto se solape con el transparente inferior
+                            */}
+                            <div className="relative z-0 -mt-20 md:-mt-32 -mb-16 md:-mb-32">
                                 <img 
                                     src={LOGO_MAIN_URL} 
                                     alt="Bokalia Main" 
@@ -162,7 +165,7 @@
                                 />
                             </div>
                             
-                            {/* TEXTO PRINCIPAL (Se superpone a la zona transparente del logo) */}
+                            {/* TEXTO PRINCIPAL (Posicionado exactamente igual respecto al logo) */}
                             <div className="relative z-10">
                                 <h1 className="text-5xl md:text-7xl font-bold text-darkText mb-6 tracking-tight leading-tight">
                                     La Esencia de tu Local, <br/>
