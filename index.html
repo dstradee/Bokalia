@@ -8,7 +8,7 @@
     <!-- Fuentes: Montserrat -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <!-- React & ReactDOM -->
     <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
@@ -26,7 +26,7 @@
             theme: {
                 extend: {
                     colors: {
-                        primary: '#E34F36',     // Terracota / Coral
+                        primary: '#E34F36',     // Terracota / Coral (Granate)
                         secondary1: '#747353',  // Verde Oliva
                         secondary2: '#D4A757',  // Amarillo Mostaza
                         neutral: '#F6E5D3',     // Beige Melocotón
@@ -46,7 +46,7 @@
     <style>
         body { font-family: 'Montserrat', sans-serif; background-color: #F6E5D3; color: #3B332C; }
         .smooth-shadow { box-shadow: 0 10px 30px rgba(59, 51, 44, 0.05); }
-        .glass-panel { background: rgba(246, 229, 211, 0.8); backdrop-filter: blur(12px); }
+        .glass-panel { background: rgba(246, 229, 211, 0.85); backdrop-filter: blur(12px); }
     </style>
 </head>
 <body class="bg-neutral text-darkText antialiased bg-bokalia-pattern">
@@ -55,14 +55,18 @@
     <script type="text/babel">
         const { useState, useEffect } = React;
 
-        // --- CONEXIÓN SUPABASE (Preparada para usarse) ---
+        // --- CONEXIÓN SUPABASE ---
         const supabaseUrl = 'https://nlzbhbxixjeafvedijst.supabase.co';
         const supabaseKey = 'sb_publishable_mbC-1Ahn8tUb9FujRHxxKQ_aYqY-blz';
         const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-        const LOGO_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/d8cc49893cad4c9676adc8b35373c2495decdba2/Logosinfondo.png";
+        // URL del logo para la barra de navegación y el pie de página
+        const LOGO_NAV_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/d8cc49893cad4c9676adc8b35373c2495decdba2/Logosinfondo.png";
+        
+        // Nueva URL del logo principal enorme con mucho espacio transparente
+        const LOGO_MAIN_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/ffbae21866e0c780c814f676ef05c311229b700a/Bokalia%20main%20sin%20fondo.png";
 
-        // --- BOTÓN PRINCIPAL (Lógica conservada para futuro checkout/acciones) ---
+        // --- BOTÓN PRINCIPAL ---
         const PrimaryActionBtn = ({ text, className, onClickAction }) => {
             const [isLoading, setIsLoading] = useState(false);
 
@@ -104,18 +108,19 @@
         const Navbar = () => (
             <nav className="fixed top-0 w-full z-50 glass-panel border-b border-secondary2/20">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between h-20 items-center">
-                        <div className="flex-shrink-0 flex items-center">
-                            <img className="h-12 w-auto object-contain" src={LOGO_URL} alt="Bokalia Logo" />
+                    <div className="flex justify-between h-24 items-center">
+                        <div className="flex-shrink-0 flex items-center h-full py-3">
+                            <img className="h-full w-auto object-contain origin-left" src={LOGO_NAV_URL} alt="Bokalia Logo" />
                         </div>
                         <div className="hidden md:flex space-x-8 items-center">
+                            <a href="#nosotros" className="text-darkText hover:text-primary transition-colors font-medium">Sobre Nosotros</a>
                             <a href="#features" className="text-darkText hover:text-primary transition-colors font-medium">Servicios</a>
                             <a href="#pricing" className="text-darkText hover:text-primary transition-colors font-medium">Bokalia Socio</a>
                             <PrimaryActionBtn text="Acceso Clientes" className="px-6 py-2 text-sm" />
                         </div>
                         <div className="md:hidden flex items-center">
                             <button className="text-darkText hover:text-primary focus:outline-none">
-                                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"/>
                                 </svg>
                             </button>
@@ -125,7 +130,7 @@
             </nav>
         );
 
-        // --- COMPONENTE: FEATURE CARD (Ahora con Icono SVG) ---
+        // --- COMPONENTE: FEATURE CARD ---
         const FeatureCard = ({ title, description, iconColor, svgPath }) => (
             <div className={`bg-white/60 backdrop-blur-sm p-8 rounded-2xl smooth-shadow border border-white/50 hover:border-${iconColor}/30 transition-all duration-300`}>
                 <div className={`w-14 h-14 rounded-2xl mb-6 flex items-center justify-center bg-${iconColor}/10 text-${iconColor}`}>
@@ -145,23 +150,36 @@
                     <Navbar />
 
                     {/* HERO SECTION */}
-                    <main className="flex-grow pt-32 pb-16 px-4 sm:px-6 lg:px-8">
-                        <div className="max-w-7xl mx-auto text-center mt-10 md:mt-16">
-                            <h1 className="text-5xl md:text-7xl font-bold text-darkText mb-6 tracking-tight leading-tight">
-                                La Esencia de tu Local, <br/>
-                                <span className="text-primary italic font-serif">Automatizada.</span>
-                            </h1>
-                            <p className="mt-4 max-w-2xl text-lg md:text-xl text-darkText/70 mx-auto font-light mb-10">
-                                Sistema premium de gestión para hostelería. Simplifica tus reservas, empodera a tu equipo y analiza tus métricas en tiempo real con una interfaz sin ruido visual.
-                            </p>
-                            <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
-                                <a href="#features" className="text-darkText font-medium hover:text-primary transition-colors border-b border-darkText/20 hover:border-primary pb-1">
-                                    Ver Servicios
-                                </a>
+                    <main className="flex-grow pt-32 pb-16 px-4 sm:px-6 lg:px-8 overflow-hidden">
+                        <div className="max-w-7xl mx-auto text-center mt-6 md:mt-10 relative">
+                            
+                            {/* LOGO GIGANTE CON MÁRGENES NEGATIVOS PARA SOLAPAR TEXTO */}
+                            <div className="relative z-0 -mb-16 md:-mb-32">
+                                <img 
+                                    src={LOGO_MAIN_URL} 
+                                    alt="Bokalia Main" 
+                                    className="w-full max-w-[800px] h-[350px] md:h-[500px] mx-auto object-contain drop-shadow-sm pointer-events-none" 
+                                />
+                            </div>
+                            
+                            {/* TEXTO PRINCIPAL (Se superpone a la zona transparente del logo) */}
+                            <div className="relative z-10">
+                                <h1 className="text-5xl md:text-7xl font-bold text-darkText mb-6 tracking-tight leading-tight">
+                                    La Esencia de tu Local, <br/>
+                                    <span className="text-primary italic font-serif">Automatizada.</span>
+                                </h1>
+                                <p className="mt-4 max-w-2xl text-lg md:text-xl text-darkText/70 mx-auto font-light mb-10">
+                                    Sistema premium de gestión para hostelería. Simplifica tus reservas, empodera a tu equipo y analiza tus métricas en tiempo real con una interfaz sin ruido visual.
+                                </p>
+                                <div className="flex flex-col sm:flex-row justify-center items-center space-y-4 sm:space-y-0 sm:space-x-6">
+                                    <a href="#nosotros" className="text-darkText font-medium hover:text-primary transition-colors border-b border-darkText/20 hover:border-primary pb-1">
+                                        Conoce Nuestra Filosofía
+                                    </a>
+                                </div>
                             </div>
 
-                            {/* Imagen interior de Bar con tonos cálidos y madera (Wabi-Sabi) */}
-                            <div className="mt-16 relative max-w-5xl mx-auto">
+                            {/* Imagen interior de Bar */}
+                            <div className="mt-20 relative max-w-5xl mx-auto z-10">
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral to-transparent z-10"></div>
                                 <img 
                                     src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200" 
@@ -172,12 +190,40 @@
                         </div>
                     </main>
 
+                    {/* SOBRE NOSOTROS SECTION */}
+                    <section id="nosotros" className="py-24 relative z-20">
+                        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center md:text-left">
+                            <h2 className="text-4xl md:text-5xl font-bold text-primary mb-8 tracking-tight">
+                                Tecnología que respeta tu oficio.
+                            </h2>
+                            
+                            <p className="text-xl md:text-2xl text-darkText leading-relaxed font-light mb-12">
+                                Sabemos perfectamente cómo es un viernes por la noche. El local a pleno rendimiento, el teléfono sonando sin parar, el equipo corriendo y el caos amenazando con desordenar el servicio. Bokalia no nace en una oficina de Silicon Valley, nace pisando la calle y entendiendo la realidad de la hostelería local.
+                            </p>
+
+                            <div className="pl-0 md:pl-8 md:border-l-2 md:border-primary/40 mt-12">
+                                <h3 className="text-2xl md:text-3xl font-bold text-primary mb-6">
+                                    Nuestro objetivo es simple: Devolverte el control.
+                                </h3>
+                                
+                                <div className="space-y-6 text-lg text-darkText/80 font-light leading-relaxed">
+                                    <p>
+                                        No queremos cambiar la esencia de tu negocio ni complicarle la vida a tus camareros con curvas de aprendizaje interminables. Desarrollamos herramientas invisibles pero potentes. Queremos que dejes de perder tiempo apuntando nombres en libretas, que tus zonas de reservado estén gestionadas al milímetro y que los clientes fantasma no te hagan perder dinero.
+                                    </p>
+                                    <p className="font-medium text-darkText text-xl italic pt-4">
+                                        Tú pones el alma y el buen servicio. Nosotros ponemos el orden para que todo funcione como un reloj.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+
                     {/* SERVICIOS SECTION */}
-                    <section id="features" className="py-24 bg-white/40 relative z-20">
+                    <section id="features" className="py-24 relative z-20">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="text-center mb-16">
                                 <h2 className="text-3xl md:text-4xl font-bold text-darkText mb-4">Herramientas Diseñadas con Propósito</h2>
-                                <p className="text-darkText/70 max-w-2xl mx-auto font-light">Flujos de trabajo limpios que respetan el tiempo de tu equipo y la experiencia de tu cliente.</p>
+                                <p className="text-darkText/70 max-w-2xl mx-auto font-light text-lg">Flujos de trabajo limpios que respetan el tiempo de tu equipo y la experiencia de tu cliente.</p>
                             </div>
                             
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -210,18 +256,18 @@
                     </section>
 
                     {/* PRICING SECTION */}
-                    <section id="pricing" className="py-24 relative">
+                    <section id="pricing" className="py-24 relative bg-white/40">
                         <div className="max-w-4xl mx-auto px-4 text-center">
                             <h2 className="text-4xl font-bold text-darkText mb-6">Módulos Abiertos y Claros</h2>
                             <div className="bg-white rounded-3xl p-10 md:p-14 smooth-shadow border border-secondary2/30 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 bg-secondary2 text-white text-xs font-bold px-4 py-1 rounded-bl-lg">EXCLUSIVO</div>
                                 <div className="flex flex-col md:flex-row justify-between items-center text-left">
                                     <div className="mb-8 md:mb-0">
-                                        <h3 className="text-2xl font-bold mb-2">Bokalia Socio</h3>
-                                        <p className="text-darkText/70 mb-6">El modelo integral para locales asociados a la plataforma.</p>
+                                        <h3 className="text-2xl font-bold mb-2 text-primary">Bokalia Socio</h3>
+                                        <p className="text-darkText/70 mb-6 font-light">El modelo integral para locales asociados a la plataforma.</p>
                                         <ul className="space-y-3">
                                             {['Gestión de reservas 360º', 'Menú QR dinámico interactivo', 'Cuentas para staff ilimitadas', 'Soporte prioritario y analíticas'].map((item, i) => (
-                                                <li key={i} className="flex items-center text-darkText">
+                                                <li key={i} className="flex items-center text-darkText font-light">
                                                     <svg className="w-5 h-5 text-secondary1 mr-3" fill="currentColor" viewBox="0 0 20 20">
                                                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"></path>
                                                     </svg>
@@ -233,7 +279,6 @@
                                     <div className="text-center md:text-right bg-neutral/30 p-8 rounded-2xl w-full md:w-auto flex flex-col items-center md:items-end">
                                         <div className="text-5xl font-bold text-darkText mb-2">50€<span className="text-lg text-darkText/50 font-normal">/mes</span></div>
                                         <p className="text-sm text-darkText/50 mb-6">Facturación mensual clara. Sin sorpresas.</p>
-                                        {/* Botón que invoca un "Hablar con nosotros" o "Solicitar Acceso" */}
                                         <PrimaryActionBtn 
                                             text="Solicitar Acceso" 
                                             className="w-full"
@@ -246,16 +291,17 @@
                     </section>
 
                     {/* FOOTER */}
-                    <footer className="border-t border-darkText/10 bg-white/30 pt-16 pb-8 mt-auto">
+                    <footer className="border-t border-darkText/10 bg-white/60 pt-16 pb-8 mt-auto">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col items-center">
-                            <img className="h-16 w-auto mb-6 opacity-90" src={LOGO_URL} alt="Bokalia Logo" />
+                            <img className="h-10 md:h-12 w-auto mb-6 opacity-80 grayscale hover:grayscale-0 transition-all duration-300" src={LOGO_NAV_URL} alt="Bokalia Logo" />
+                            
                             <div className="flex space-x-6 mb-8 text-sm font-medium text-darkText/60">
                                 <a href="#" className="hover:text-primary transition-colors">Aviso Legal</a>
                                 <a href="#" className="hover:text-primary transition-colors">Privacidad</a>
                                 <a href="mailto:bokaliaa@hotmail.com" className="hover:text-primary transition-colors font-bold">Contacto</a>
                             </div>
                             <p className="text-sm text-darkText/40">
-                                © 2026 Bokalia. Estética y tecnología para negocios locales.
+                                © 2026 Bokalia. Tecnología que respeta tu oficio.
                             </p>
                         </div>
                     </footer>
