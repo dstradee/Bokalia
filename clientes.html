@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Socios | Bokalia</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/dstradee/Bokalia/2ab5ec2e9fa305d65e10b062aaa10ccdbdd0bf76/favicon.jpg">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { primary: '#E34F36', secondary1: '#747353', neutral: '#F6E5D3', darkText: '#3B332C' },
+                    fontFamily: { sans: ['Montserrat', 'sans-serif'] },
+                }
+            }
+        }
+    </script>
+    <style>body { font-family: 'Montserrat', sans-serif; background-color: #F6E5D3; color: #3B332C; }</style>
+</head>
+<body class="bg-neutral text-darkText antialiased">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const supabase = supabase.createClient('https://nlzbhbxixjeafvedijst.supabase.co', 'sb_publishable_mbC-1Ahn8tUb9FujRHxxKQ_aYqY-blz');
+        const LOGO_URL = "https://raw.githubusercontent.com/dstradee/Bokalia/d8cc49893cad4c9676adc8b35373c2495decdba2/Logosinfondo.png";
+
+        const App = () => {
+            const [session, setSession] = useState(null);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            const [subData, setSubData] = useState(null);
+
+            useEffect(() => {
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    setSession(session);
+                    if (session) fetchSubData(session.user.id);
+                });
+
+                supabase.auth.onAuthStateChange((_event, session) => {
+                    setSession(session);
+                    if (session) fetchSubData(session.user.id);
+                });
+            }, []);
+
+            const fetchSubData = async (userId) => {
+                const { data, error } = await supabase.from('subscriptions').select('*').eq('id', userId).single();
+                if (data) setSubData(data);
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) alert("Error: " + error.message);
+                setLoading(false);
+            };
+
+            const handleCheckout = async () => {
+                setLoading(true);
+                try {
+                    // AQUÍ HACES LA PETICIÓN A VERCEL (A tu Pieza 2)
+                    const response = await fetch('/api/create-checkout-session', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ userId: session.user.id, email: session.user.email })
+                    });
+                    const data = await response.json();
+                    if(data.url) window.location.href = data.url; // Redirige a Stripe
+                    else alert("Error al conectar con Stripe");
+                } catch(e) {
+                    alert("Error en el servidor");
+                }
+                setLoading(false);
+            };
+
+            if (!session) {
+                // PANTALLA DE LOGIN
+                return (
+                    <div className="min-h-screen flex flex-col justify-center items-center p-4">
+                        <img src={LOGO_URL} className="h-20 mb-10 opacity-90" alt="Bokalia" />
+                        <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-xl w-full max-w-md border border-white/40">
+                            <h2 className="text-2xl font-bold mb-6 text-center text-darkText">Acceso Socios</h2>
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 opacity-70">Email de tu local</label>
+                                    <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium mb-1 opacity-70">Contraseña</label>
+                                    <input type="password" value={password} onChange={(e)=>setPassword(e.target.value)} required className="w-full px-4 py-3 rounded-xl bg-neutral/30 border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" />
+                                </div>
+                                <button disabled={loading} className="w-full bg-primary hover:bg-[#c9432c] text-white py-3 rounded-full font-semibold transition shadow-md mt-6">
+                                    {loading ? 'Entrando...' : 'Iniciar Sesión'}
+                                </button>
+                            </form>
+                        </div>
+                        <a href="index.html" className="mt-8 text-sm opacity-60 hover:opacity-100 transition">Volver a la web</a>
+                    </div>
+                );
+            }
+
+            // PANTALLA DEL DASHBOARD (CLIENTE LOGUEADO)
+            const isActive = subData?.status === 'activa';
+
+            return (
+                <div className="min-h-screen">
+                    <nav className="bg-white/60 border-b border-darkText/10 px-6 py-4 flex justify-between items-center">
+                        <img src={LOGO_URL} className="h-10" alt="Bokalia" />
+                        <button onClick={() => supabase.auth.signOut()} className="text-sm font-medium opacity-60 hover:text-primary transition">Cerrar Sesión</button>
+                    </nav>
+
+                    <div className="max-w-4xl mx-auto p-6 mt-10">
+                        <h1 className="text-3xl font-bold mb-2">Bienvenido, Gestor.</h1>
+                        <p className="text-darkText/70 mb-10">Panel de administración de Bokalia Socio.</p>
+
+                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-white/50 mb-8">
+                            <div className="flex justify-between items-center mb-6 border-b border-darkText/10 pb-6">
+                                <div>
+                                    <h2 className="text-xl font-bold">Estado del Sistema</h2>
+                                    <p className="text-sm opacity-70">Gestión de tu motor de reservas y menús</p>
+                                </div>
+                                <span className={`px-4 py-1 rounded-full text-sm font-bold text-white ${isActive ? 'bg-secondary1' : 'bg-red-500'}`}>
+                                    {isActive ? 'SISTEMA ACTIVO' : 'SISTEMA INACTIVO'}
+                                </span>
+                            </div>
+
+                            {!isActive ? (
+                                <div className="bg-neutral/50 p-6 rounded-2xl text-center border border-primary/20">
+                                    <h3 className="text-lg font-bold text-primary mb-2">Suscripción Requerida</h3>
+                                    <p className="text-sm opacity-80 mb-6">Para arrancar el motor de reservas y el sistema operativo de tu local, necesitas activar tu suscripción.</p>
+                                    <button onClick={handleCheckout} disabled={loading} className="bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-[#c9432c] hover:-translate-y-1 transition shadow-lg">
+                                        {loading ? 'Conectando con Stripe...' : 'Activar sistema de reservas (30 días gratis)'}
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5">
+                                        <h3 className="font-bold mb-2">Motor de Reservas</h3>
+                                        <p className="text-sm opacity-70 mb-4">El sistema está online y aceptando clientes.</p>
+                                        <button className="text-primary text-sm font-bold hover:underline">Configurar Mesas →</button>
+                                    </div>
+                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5">
+                                        <h3 className="font-bold mb-2">Facturación (Stripe)</h3>
+                                        <p className="text-sm opacity-70 mb-4">Suscripción recurrente (50€/mes). Al día.</p>
+                                        <button className="text-primary text-sm font-bold hover:underline">Ver Historial de Facturas →</button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
