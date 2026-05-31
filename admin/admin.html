@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Admin | Bokalia</title>
+    <link rel="icon" href="https://raw.githubusercontent.com/dstradee/Bokalia/2ab5ec2e9fa305d65e10b062aaa10ccdbdd0bf76/favicon.jpg">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        tailwind.config = { theme: { extend: { colors: { primary: '#E34F36', secondary1: '#747353', neutral: '#F6E5D3', darkText: '#3B332C' }, fontFamily: { sans: ['Montserrat', 'sans-serif'] }}}}
+    </script>
+    <style>body { background-color: #F6E5D3; color: #3B332C; font-family: 'Montserrat', sans-serif; }</style>
+</head>
+<body class="antialiased">
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const supabase = supabase.createClient('https://nlzbhbxixjeafvedijst.supabase.co', 'sb_publishable_mbC-1Ahn8tUb9FujRHxxKQ_aYqY-blz');
+        
+        // UID ENCRIPTADO (Base64). Nadie que lea el código sabrá tu UID real.
+        const ENCRYPTED_UID = 'ZTlkMWNmZGQtNjZkYi00NmI4LWJlYjgtNWJlODIxNDBjMzNl';
+
+        const App = () => {
+            const [session, setSession] = useState(null);
+            const [email, setEmail] = useState('');
+            const [password, setPassword] = useState('');
+            const [loading, setLoading] = useState(false);
+            
+            // Datos
+            const [tab, setTab] = useState('metrics');
+            const [clients, setClients] = useState([]);
+            const [adminPrefs, setAdminPrefs] = useState(null);
+            
+            // Editor Web
+            const [editTarget, setEditTarget] = useState('global');
+            const [greeting, setGreeting] = useState('');
+            const [sections, setSections] = useState([]);
+
+            useEffect(() => {
+                supabase.auth.getSession().then(({ data: { session } }) => {
+                    if (session) {
+                        // Desencripta y comprueba si es tu cuenta
+                        if (session.user.id === atob(ENCRYPTED_UID)) {
+                            setSession(session);
+                            fetchData();
+                        } else {
+                            // Si entra un cliente aquí por error, lo echa.
+                            supabase.auth.signOut();
+                        }
+                    }
+                });
+            }, []);
+
+            const fetchData = async () => {
+                try {
+                    // Cargar Clientes
+                    const { data: subs } = await supabase.from('subscriptions').select('*').order('created_at', { ascending: false });
+                    if (subs) setClients(subs);
+                    
+                    // Cargar Preferencias de Admin (usando maybeSingle para no bloquear la app si no existe)
+                    const { data: prefs } = await supabase.from('ui_configurations').select('*').eq('target_id', 'admin_prefs').maybeSingle();
+                    if (prefs) setAdminPrefs(prefs);
+
+                    loadEditorData('global');
+                } catch (err) {
+                    console.error("Error cargando datos:", err);
+                }
+            };
+
+            const loadEditorData = async (target) => {
+                try {
+                    const { data } = await supabase.from('ui_configurations').select('*').eq('target_id', target).maybeSingle();
+                    if (data) {
+                        setGreeting(data.greeting_text || 'Bienvenido, Gestor.');
+                        setSections(data.custom_sections || []);
+                    } else {
+                        setGreeting('Bienvenido, Gestor.');
+                        setSections([]);
+                    }
+                } catch (err) {
+                    console.error("Error cargando el editor:", err);
+                }
+            };
+
+            const handleLogin = async (e) => {
+                e.preventDefault();
+                setLoading(true);
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                
+                if (error) {
+                    alert("Error: " + error.message);
+                } else if (data.session.user.id !== atob(ENCRYPTED_UID)) {
+                    // SEGURIDAD: Solo tú puedes pasar
+                    alert("Acceso denegado. Tu cuenta no tiene permisos de Super Admin.");
+                    await supabase.auth.signOut();
+                    setSession(null);
+                } else {
+                    setSession(data.session);
+                    fetchData();
+                }
+                setLoading(false);
+            };
+
+            // MÉTRICAS
+            const resetDate = adminPrefs?.metrics_reset_date ? new Date(adminPrefs.metrics_reset_date) : new Date(0);
+            const validClients = clients.filter(c => new Date(c.created_at) >= resetDate);
+            const activeCount = validClients.filter(c => c.status === 'activa').length;
+            
+            const handleResetMetrics = async () => {
+                if(confirm("¿Seguro que quieres borrar el contador de clientes nuevos? Los clientes seguirán existiendo, solo se reiniciarán las métricas visuales de fechas pasadas.")) {
+                    await supabase.from('ui_configurations').upsert({ target_id: 'admin_prefs', metrics_reset_date: new Date().toISOString() });
+                    fetchData();
+                }
+            };
+
+            // EDITOR WEB
+            const handleSaveUI = async () => {
+                setLoading(true);
+                await supabase.from('ui_configurations').upsert({ target_id: editTarget, greeting_text: greeting, custom_sections: sections });
+                alert("Panel de cliente actualizado en tiempo real.");
+                setLoading(false);
+            };
+
+            if (!session) {
+                // PANTALLA DE LOGIN SUPER ADMIN
+                return (
+                    <div className="min-h-screen flex items-center justify-center p-4">
+                        <form onSubmit={handleLogin} className="bg-white/80 backdrop-blur-md p-8 sm:p-10 rounded-3xl shadow-xl max-w-sm w-full border border-white/50 text-center">
+                            <h2 className="text-2xl font-bold mb-8 text-primary">Super Admin</h2>
+                            <input type="email" placeholder="Correo del administrador" value={email} onChange={e=>setEmail(e.target.value)} required className="w-full mb-4 p-4 bg-neutral/30 border border-darkText/10 rounded-xl focus:border-primary outline-none transition" />
+                            <input type="password" placeholder="Contraseña secreta" value={password} onChange={e=>setPassword(e.target.value)} required className="w-full mb-8 p-4 bg-neutral/30 border border-darkText/10 rounded-xl focus:border-primary outline-none transition" />
+                            <button disabled={loading} className="w-full bg-darkText text-white p-4 rounded-xl font-bold hover:bg-black transition">
+                                {loading ? 'Autenticando...' : 'Acceder al Sistema'}
+                            </button>
+                        </form>
+                    </div>
+                );
+            }
+
+            // PANEL PRINCIPAL
+            return (
+                <div className="min-h-screen flex flex-col md:flex-row">
+                    {/* SIDEBAR */}
+                    <div className="w-full md:w-64 bg-white border-r border-darkText/10 p-6 flex flex-col md:min-h-screen">
+                        <h2 className="font-bold text-xl text-primary mb-8 tracking-widest">BOKALIA</h2>
+                        <div className="flex md:flex-col overflow-x-auto md:overflow-visible gap-4 md:gap-0 pb-4 md:pb-0">
+                            <button onClick={()=>setTab('metrics')} className={`text-left font-bold md:mb-4 px-2 md:px-0 whitespace-nowrap ${tab==='metrics'?'text-primary':'text-darkText/60 hover:text-darkText'}`}>📊 Métricas</button>
+                            <button onClick={()=>setTab('clients')} className={`text-left font-bold md:mb-4 px-2 md:px-0 whitespace-nowrap ${tab==='clients'?'text-primary':'text-darkText/60 hover:text-darkText'}`}>👥 Clientes</button>
+                            <button onClick={()=>setTab('editor')} className={`text-left font-bold md:mb-8 px-2 md:px-0 whitespace-nowrap ${tab==='editor'?'text-primary':'text-darkText/60 hover:text-darkText'}`}>🎨 Editor Web</button>
+                        </div>
+                        <button onClick={() => {supabase.auth.signOut(); setSession(null);}} className="text-left text-sm text-red-500 font-bold mt-auto hidden md:block">Cerrar Sesión</button>
+                    </div>
+
+                    {/* CONTENT */}
+                    <div className="flex-grow p-4 sm:p-6 md:p-10 overflow-y-auto">
+                        
+                        {/* PESTAÑA: MÉTRICAS */}
+                        {tab === 'metrics' && (
+                            <div className="max-w-6xl mx-auto">
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+                                    <h1 className="text-2xl md:text-3xl font-bold">Métricas Financieras</h1>
+                                    <button onClick={handleResetMetrics} className="w-full sm:w-auto bg-darkText text-white px-4 py-2 rounded-lg text-sm hover:bg-black transition">Borrar Histórico de Métricas</button>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-darkText/5">
+                                        <p className="text-sm opacity-60 mb-2">Ingresos Recurrentes (MRR)</p>
+                                        <p className="text-4xl font-bold text-secondary1">{activeCount * 50}€</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-darkText/5">
+                                        <p className="text-sm opacity-60 mb-2">Locales Activos</p>
+                                        <p className="text-4xl font-bold text-primary">{activeCount}</p>
+                                    </div>
+                                    <div className="bg-white p-6 rounded-2xl shadow-sm border border-darkText/5">
+                                        <p className="text-sm opacity-60 mb-2">Nuevos Registros</p>
+                                        <p className="text-4xl font-bold text-darkText">{validClients.length}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PESTAÑA: CLIENTES */}
+                        {tab === 'clients' && (
+                            <div className="max-w-6xl mx-auto">
+                                <h1 className="text-2xl md:text-3xl font-bold mb-8">Gestión de Clientes</h1>
+                                <div className="bg-white rounded-2xl overflow-x-auto shadow-sm border border-darkText/5">
+                                    <table className="w-full text-left min-w-[600px]">
+                                        <thead className="bg-neutral/50 border-b border-darkText/10">
+                                            <tr>
+                                                <th className="p-4 font-bold text-sm opacity-80">Email del Cliente</th>
+                                                <th className="p-4 font-bold text-sm opacity-80">Estado (Stripe)</th>
+                                                <th className="p-4 font-bold text-sm opacity-80">Fecha de Alta</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {clients.length === 0 ? (
+                                                <tr><td colSpan="3" className="p-6 text-center opacity-50">No hay clientes aún</td></tr>
+                                            ) : (
+                                                clients.map(c => (
+                                                    <tr key={c.id} className="border-b border-darkText/5 hover:bg-neutral/10">
+                                                        <td className="p-4 font-medium">{c.email}</td>
+                                                        <td className="p-4">
+                                                            <span className={`px-3 py-1 rounded-full text-xs font-bold text-white ${c.status === 'activa' ? 'bg-secondary1' : 'bg-red-500'}`}>
+                                                                {c.status.toUpperCase()}
+                                                            </span>
+                                                        </td>
+                                                        <td className="p-4 text-sm opacity-70">{new Date(c.created_at).toLocaleDateString()}</td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* PESTAÑA: EDITOR WEB (CMS) */}
+                        {tab === 'editor' && (
+                            <div className="max-w-4xl mx-auto">
+                                <h1 className="text-2xl md:text-3xl font-bold mb-2">Editor del Panel de Clientes</h1>
+                                <p className="text-sm md:text-base opacity-70 mb-8">Añade o quita secciones en tiempo real en los paneles de tus clientes.</p>
+
+                                <div className="bg-white p-6 sm:p-8 rounded-3xl shadow-sm border border-darkText/10 mb-8">
+                                    <label className="block font-bold mb-2 text-sm text-primary">1. ¿A quién quieres editarle la web?</label>
+                                    <select value={editTarget} onChange={(e)=>{setEditTarget(e.target.value); loadEditorData(e.target.value);}} className="w-full p-4 border border-darkText/20 bg-neutral/10 rounded-xl mb-8 focus:outline-none focus:border-primary font-medium text-sm">
+                                        <option value="global">🌍 A TODOS LOS CLIENTES (Diseño Global)</option>
+                                        {clients.map(c => <option key={c.id} value={c.id}>👤 Solo al local: {c.email}</option>)}
+                                    </select>
+
+                                    <label className="block font-bold mb-2 text-sm text-primary">2. Mensaje de Bienvenida Principal</label>
+                                    <input type="text" value={greeting} onChange={e=>setGreeting(e.target.value)} className="w-full p-4 border border-darkText/20 rounded-xl mb-10 focus:outline-none focus:border-primary text-sm" placeholder="Ej: Bienvenido, Gestor." />
+
+                                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                                        <label className="block font-bold text-sm text-primary">3. Secciones Extra y Botones</label>
+                                        <button onClick={()=>setSections([...sections, {id: Date.now(), title: '', desc: '', btnText: '', btnUrl: ''}])} className="w-full sm:w-auto bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm hover:bg-[#c9432c]">+ Añadir Sección</button>
+                                    </div>
+
+                                    {sections.length === 0 && <p className="text-sm opacity-50 italic text-center py-4">No hay secciones extra. Solo se mostrará el bloque de Facturación por defecto.</p>}
+
+                                    {sections.map((sec, index) => (
+                                        <div key={sec.id} className="bg-neutral/30 p-4 sm:p-6 rounded-2xl mb-6 border border-darkText/10 relative">
+                                            <button onClick={()=>{let s=[...sections]; s.splice(index, 1); setSections(s);}} className="absolute top-4 right-4 text-xs font-bold text-red-500 hover:underline">Eliminar</button>
+                                            <div className="space-y-4 pr-12">
+                                                <input placeholder="Título (Ej: Editar Carta Digital)" value={sec.title} onChange={e=>{let s=[...sections]; s[index].title=e.target.value; setSections(s);}} className="w-full p-3 border border-darkText/10 rounded-lg text-sm font-bold" />
+                                                <input placeholder="Descripción breve de la sección" value={sec.desc} onChange={e=>{let s=[...sections]; s[index].desc=e.target.value; setSections(s);}} className="w-full p-3 border border-darkText/10 rounded-lg text-sm" />
+                                                <div className="flex flex-col sm:flex-row gap-4">
+                                                    <input placeholder="Texto Botón (Ej: Entrar)" value={sec.btnText} onChange={e=>{let s=[...sections]; s[index].btnText=e.target.value; setSections(s);}} className="w-full sm:w-1/3 p-3 border border-darkText/10 rounded-lg text-sm" />
+                                                    <input placeholder="Enlace URL (https://...)" value={sec.btnUrl} onChange={e=>{let s=[...sections]; s[index].btnUrl=e.target.value; setSections(s);}} className="w-full sm:w-2/3 p-3 border border-darkText/10 rounded-lg text-sm" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+
+                                    <button onClick={handleSaveUI} disabled={loading} className="mt-8 w-full bg-secondary1 text-white py-4 rounded-xl font-bold hover:bg-black transition shadow-lg">
+                                        {loading ? 'Guardando...' : '💾 GUARDAR Y PUBLICAR EN TIEMPO REAL'}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                    </div>
+                </div>
+            );
+        };
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
