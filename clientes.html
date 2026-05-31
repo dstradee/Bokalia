@@ -101,13 +101,13 @@
             };
 
             if (!session) {
-                // PANTALLA DE LOGIN (Logo ampliado y textos modificados)
+                // PANTALLA DE LOGIN: Completamente Mobile-First
                 return (
                     <div className="min-h-screen flex flex-col justify-center items-center p-4">
-                        <img src={LOGO_URL} className="h-28 md:h-36 mb-10 opacity-90 object-contain drop-shadow-sm" alt="Bokalia" />
+                        <img src={LOGO_URL} className="h-24 sm:h-28 md:h-36 mb-8 md:mb-10 opacity-90 object-contain drop-shadow-sm" alt="Bokalia" />
                         
-                        <div className="bg-white/80 backdrop-blur-md p-10 rounded-3xl shadow-xl w-full max-w-md border border-white/40">
-                            <h2 className="text-2xl font-bold mb-6 text-center text-darkText">Acceso Socios</h2>
+                        <div className="bg-white/80 backdrop-blur-md p-6 sm:p-10 rounded-3xl shadow-xl w-full max-w-md border border-white/40">
+                            <h2 className="text-xl sm:text-2xl font-bold mb-6 text-center text-darkText">Acceso Socios</h2>
                             <form onSubmit={handleLogin} className="space-y-4">
                                 <div>
                                     <label className="block text-sm font-medium mb-1 opacity-70">Email personal</label>
@@ -127,54 +127,54 @@
                 );
             }
 
-            // PANTALLA DEL DASHBOARD
+            // PANTALLA DEL DASHBOARD: Ajustes Mobile para que no se amontone nada
             const isActive = subData?.status === 'activa';
 
             return (
-                <div className="min-h-screen pb-20">
-                    {/* Barra de navegación (Logo ampliado) */}
-                    <nav className="bg-white/60 border-b border-darkText/10 px-6 py-4 flex justify-between items-center">
-                        <img src={LOGO_URL} className="h-14 md:h-16 object-contain" alt="Bokalia" />
+                <div className="min-h-screen pb-20 px-4 sm:px-6">
+                    <nav className="bg-white/60 border-b border-darkText/10 py-4 flex flex-col sm:flex-row justify-between items-center gap-4 -mx-4 sm:-mx-6 px-4 sm:px-6 mb-8">
+                        <img src={LOGO_URL} className="h-12 md:h-16 object-contain" alt="Bokalia" />
                         <button onClick={() => supabase.auth.signOut()} className="text-sm font-medium opacity-60 hover:text-primary transition">Cerrar Sesión</button>
                     </nav>
 
-                    <div className="max-w-4xl mx-auto p-6 mt-10">
-                        <h1 className="text-3xl font-bold mb-2">Bienvenido, Gestor.</h1>
-                        <p className="text-darkText/70 mb-10">Conectado como: <span className="font-semibold">{session.user.email}</span></p>
+                    <div className="max-w-4xl mx-auto mt-6 md:mt-10">
+                        <div className="text-center sm:text-left mb-8 md:mb-10">
+                            <h1 className="text-2xl md:text-3xl font-bold mb-2">Bienvenido, Gestor.</h1>
+                            <p className="text-sm md:text-base text-darkText/70">Conectado como: <span className="font-semibold block sm:inline">{session.user.email}</span></p>
+                        </div>
 
-                        <div className="bg-white rounded-3xl p-8 shadow-sm border border-white/50 mb-8">
-                            <div className="flex justify-between items-center mb-6 border-b border-darkText/10 pb-6">
+                        <div className="bg-white rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm border border-white/50 mb-6 md:mb-8">
+                            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6 border-b border-darkText/10 pb-6">
                                 <div>
-                                    <h2 className="text-xl font-bold">Estado del Sistema</h2>
-                                    <p className="text-sm opacity-70">Control de tu cuenta Bokalia Socio</p>
+                                    <h2 className="text-lg md:text-xl font-bold">Estado del Sistema</h2>
+                                    <p className="text-xs md:text-sm opacity-70">Control de tu cuenta Bokalia Socio</p>
                                 </div>
-                                <span className={`px-4 py-1 rounded-full text-sm font-bold text-white ${isActive ? 'bg-secondary1' : 'bg-red-500'}`}>
+                                <span className={`px-4 py-2 rounded-full text-xs md:text-sm font-bold text-white w-full sm:w-auto text-center ${isActive ? 'bg-secondary1' : 'bg-red-500'}`}>
                                     {isActive ? 'SISTEMA ACTIVO' : 'SISTEMA INACTIVO'}
                                 </span>
                             </div>
 
                             {!isActive ? (
-                                <div className="bg-neutral/50 p-6 rounded-2xl text-center border border-primary/20">
-                                    <h3 className="text-lg font-bold text-primary mb-2">Suscripción Requerida</h3>
-                                    <p className="text-sm opacity-80 mb-6">Para arrancar el motor de reservas y el sistema operativo de tu local, necesitas activar tu suscripción.</p>
-                                    <button onClick={handleCheckout} disabled={loading} className="bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-[#c9432c] hover:-translate-y-1 transition shadow-lg">
+                                <div className="bg-neutral/50 p-6 md:p-8 rounded-2xl text-center border border-primary/20">
+                                    <h3 className="text-base md:text-lg font-bold text-primary mb-2">Suscripción Requerida</h3>
+                                    <p className="text-xs md:text-sm opacity-80 mb-6">Para arrancar el motor de reservas y el sistema operativo de tu local, necesitas activar tu suscripción.</p>
+                                    <button onClick={handleCheckout} disabled={loading} className="w-full sm:w-auto bg-primary text-white px-8 py-3 rounded-full font-semibold hover:bg-[#c9432c] transition shadow-lg">
                                         {loading ? 'Conectando con Stripe...' : 'Activar sistema (30 días gratis)'}
                                     </button>
                                 </div>
                             ) : (
                                 <div className="grid grid-cols-1 gap-6">
-                                    {/* BLOQUE DE FACTURACIÓN CON LINK DE STRIPE */}
-                                    <div className="p-6 bg-neutral/30 rounded-2xl border border-darkText/5 flex flex-col sm:flex-row justify-between items-start sm:items-center">
-                                        <div className="mb-4 sm:mb-0">
-                                            <h3 className="font-bold mb-2 text-lg">Facturación y Suscripción</h3>
-                                            <p className="text-sm opacity-70 mb-1">Suscripción recurrente (50€/mes). Al día.</p>
-                                            <p className="text-xs opacity-50 max-w-sm mt-2">El historial de facturas está alojado en Stripe. No ocupa espacio en tus bases de datos.</p>
+                                    <div className="p-6 md:p-8 bg-neutral/30 rounded-2xl border border-darkText/5 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+                                        <div className="w-full md:w-auto text-center sm:text-left">
+                                            <h3 className="font-bold mb-2 text-base md:text-lg">Facturación y Suscripción</h3>
+                                            <p className="text-xs md:text-sm opacity-70 mb-1">Suscripción recurrente (50€/mes). Al día.</p>
+                                            <p className="text-xs opacity-50 mt-2">El historial de facturas está alojado en Stripe. No ocupa espacio en tus bases de datos.</p>
                                         </div>
                                         <a 
                                             href="https://billing.stripe.com/p/login/28E14nfz49W84Ex63M00000" 
                                             target="_blank" 
                                             rel="noopener noreferrer"
-                                            className="bg-white border border-darkText/10 text-darkText px-6 py-3 rounded-full text-sm font-bold hover:border-primary hover:text-primary transition shadow-sm cursor-pointer"
+                                            className="w-full md:w-auto bg-white border border-darkText/10 text-darkText px-6 py-3 md:py-4 rounded-full text-xs md:text-sm text-center font-bold hover:border-primary hover:text-primary transition shadow-sm cursor-pointer"
                                         >
                                             Gestionar / Cancelar Suscripción →
                                         </a>
@@ -183,13 +183,12 @@
                             )}
                         </div>
 
-                        {/* BLOQUE DE CONTRASEÑA */}
-                        <div className="bg-white/60 rounded-3xl p-8 shadow-sm border border-white/50">
-                            <h2 className="text-xl font-bold mb-2">Seguridad de tu cuenta</h2>
-                            <p className="text-sm opacity-70 mb-6">Si has accedido mediante una invitación a tu correo personal, establece aquí tu contraseña para poder entrar la próxima vez de forma normal.</p>
+                        <div className="bg-white/60 rounded-2xl md:rounded-3xl p-6 md:p-8 shadow-sm border border-white/50">
+                            <h2 className="text-lg md:text-xl font-bold mb-2 text-center sm:text-left">Seguridad de tu cuenta</h2>
+                            <p className="text-xs md:text-sm opacity-70 mb-6 text-center sm:text-left">Si has accedido mediante una invitación a tu correo personal, establece aquí tu contraseña para poder entrar la próxima vez de forma normal.</p>
                             
-                            <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row gap-4 items-start">
-                                <div className="w-full sm:w-2/3">
+                            <form onSubmit={handleUpdatePassword} className="flex flex-col sm:flex-row gap-4 items-stretch sm:items-center">
+                                <div className="w-full sm:flex-grow">
                                     <input 
                                         type="password" 
                                         placeholder="Escribe tu nueva contraseña" 
@@ -197,14 +196,14 @@
                                         onChange={(e)=>setNewPassword(e.target.value)} 
                                         required 
                                         minLength="6"
-                                        className="w-full px-4 py-3 rounded-xl bg-white border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition" 
+                                        className="w-full px-4 py-3 rounded-xl bg-white border border-darkText/10 focus:border-primary focus:ring-1 focus:ring-primary outline-none transition text-sm" 
                                     />
                                 </div>
-                                <button disabled={loading} className="w-full sm:w-1/3 bg-darkText text-white py-3 rounded-xl font-semibold hover:bg-black transition">
+                                <button disabled={loading} className="w-full sm:w-auto whitespace-nowrap bg-darkText text-white px-6 py-3 rounded-xl font-semibold hover:bg-black transition text-sm">
                                     {loading ? 'Guardando...' : 'Guardar Contraseña'}
                                 </button>
                             </form>
-                            {passwordMsg && <p className="mt-3 text-sm font-bold text-primary">{passwordMsg}</p>}
+                            {passwordMsg && <p className="mt-4 text-sm font-bold text-primary text-center sm:text-left">{passwordMsg}</p>}
                         </div>
 
                     </div>
