@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bokalia | Automatización Premium para Hostelería</title>
+    <title>Bokalia | Agencia de Digitalización y Automatización</title>
     
     <!-- Favicon -->
     <link rel="icon" href="https://raw.githubusercontent.com/dstradee/Bokalia/2ab5ec2e9fa305d65e10b062aaa10ccdbdd0bf76/favicon.jpg">
@@ -85,8 +85,8 @@
                             <img className="h-full w-auto object-contain origin-left" src={LOGO_NAV_URL} alt="Bokalia Logo" />
                         </div>
                         <div className="hidden md:flex space-x-8 items-center">
-                            <a href="#nosotros" className="text-darkText hover:text-primary transition-colors font-medium">Sobre Nosotros</a>
-                            <a href="#features" className="text-darkText hover:text-primary transition-colors font-medium">Servicios</a>
+                            <a href="#nosotros" className="text-darkText hover:text-primary transition-colors font-medium">Filosofía</a>
+                            <a href="#features" className="text-darkText hover:text-primary transition-colors font-medium">Soluciones</a>
                             <a href="#pricing" className="text-darkText hover:text-primary transition-colors font-medium">Bokalia Socio</a>
                             <PrimaryActionBtn text="Acceso Clientes" className="px-6 py-2 text-sm" />
                         </div>
@@ -95,14 +95,14 @@
             </nav>
         );
 
-        // FeatureCard ahora ocupa siempre h-full para simetría perfecta
-        const FeatureCard = ({ title, description, iconColor, svgPath }) => (
-            <div className={`h-full flex flex-col bg-white/60 backdrop-blur-sm p-6 md:p-8 rounded-2xl smooth-shadow border border-white/50 hover:border-${iconColor}/30 transition-all duration-300`}>
-                <div className={`w-14 h-14 rounded-2xl mb-6 flex items-center justify-center bg-${iconColor}/10 text-${iconColor}`}>
+        // FeatureCard adaptado para soportar ancho completo (isFullWidth)
+        const FeatureCard = ({ title, description, iconColor, svgPath, isFullWidth = false }) => (
+            <div className={`h-full flex flex-col bg-white/60 backdrop-blur-sm p-6 md:p-8 rounded-2xl smooth-shadow border border-white/50 hover:border-${iconColor}/30 transition-all duration-300 ${isFullWidth ? 'md:col-span-2' : ''}`}>
+                <div className={`w-14 h-14 rounded-2xl mb-6 flex items-center justify-center bg-${iconColor}/10 text-${iconColor} ${isFullWidth ? 'mx-auto md:mx-0' : ''}`}>
                     <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d={svgPath}></path></svg>
                 </div>
-                <h3 className="text-xl font-bold mb-3 text-darkText">{title}</h3>
-                <p className="text-darkText/80 font-light leading-relaxed flex-grow">{description}</p>
+                <h3 className={`text-xl font-bold mb-3 text-darkText ${isFullWidth ? 'text-center md:text-left' : ''}`}>{title}</h3>
+                <p className={`text-darkText/80 font-light leading-relaxed flex-grow ${isFullWidth ? 'text-center md:text-left text-lg' : ''}`}>{description}</p>
             </div>
         );
 
@@ -119,10 +119,10 @@
                             
                             <div className="relative z-10 px-2">
                                 <h1 className="text-4xl sm:text-5xl md:text-7xl font-bold text-darkText mb-6 tracking-tight leading-tight">
-                                    La Esencia de tu Local, <br className="hidden sm:block"/><span className="text-primary italic font-serif">Automatizada.</span>
+                                    La Esencia de tu Negocio, <br className="hidden sm:block"/><span className="text-primary italic font-serif">Automatizada.</span>
                                 </h1>
                                 <p className="mt-4 max-w-2xl text-base sm:text-lg md:text-xl text-darkText/70 mx-auto font-light mb-10">
-                                    Sistema premium de gestión para hostelería. Simplifica tus reservas, empodera a tu equipo y analiza tus métricas en tiempo real con una interfaz sin ruido visual.
+                                    Agencia de digitalización a medida para negocios locales. Si tu empresa tiene un cuello de botella operativo o de ventas, nosotros programamos la solución tecnológica.
                                 </p>
                                 <div className="flex justify-center">
                                     <a href="#nosotros" className="text-darkText font-medium hover:text-primary transition-colors border-b border-darkText/20 hover:border-primary pb-1">Conoce Nuestra Filosofía</a>
@@ -131,7 +131,7 @@
                             
                             <div className="mt-16 sm:mt-20 relative max-w-5xl mx-auto z-10 px-2">
                                 <div className="absolute inset-0 bg-gradient-to-t from-neutral to-transparent z-10"></div>
-                                <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&q=80&w=1200" alt="Interior bar" className="rounded-t-3xl shadow-2xl object-cover h-[250px] sm:h-[350px] md:h-[450px] w-full border-t border-x border-white/40" />
+                                <img src="https://images.unsplash.com/photo-1664575602554-2087b04935a5?auto=format&fit=crop&q=80&w=1200" alt="Agencia y Negocios" className="rounded-t-3xl shadow-2xl object-cover h-[250px] sm:h-[350px] md:h-[450px] w-full border-t border-x border-white/40" />
                             </div>
                         </div>
                     </main>
@@ -139,12 +139,14 @@
                     <section id="nosotros" className="py-16 md:py-24 relative z-20 px-4 sm:px-6 lg:px-8">
                         <div className="max-w-4xl mx-auto text-center md:text-left">
                             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-primary mb-6 md:mb-8 tracking-tight">Tecnología que respeta tu oficio.</h2>
-                            <p className="text-lg sm:text-xl md:text-2xl text-darkText leading-relaxed font-light mb-10 md:mb-12">Sabemos perfectamente cómo es un viernes por la noche. El local a pleno rendimiento, el teléfono sonando sin parar, el equipo corriendo y el caos amenazando con desordenar el servicio. Bokalia no nace en una oficina de Silicon Valley, nace pisando la calle y entendiendo la realidad de la hostelería local.</p>
+                            <p className="text-lg sm:text-xl md:text-2xl text-darkText leading-relaxed font-light mb-10 md:mb-12">
+                                Sabemos lo que es el caos. El teléfono del bufete sonando sin parar, el control de visitas de una inmobiliaria perdiéndose en papeles, o el estrés del viernes noche en tu local. Bokalia no nace en una oficina de Silicon Valley, nace pisando la calle y entendiendo la realidad de los negocios locales.
+                            </p>
                             <div className="pl-0 md:pl-8 md:border-l-2 md:border-primary/40 mt-8 md:mt-12">
                                 <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-primary mb-6">Nuestro objetivo es simple: Devolverte el control.</h3>
                                 <div className="space-y-6 text-base sm:text-lg text-darkText/80 font-light leading-relaxed">
-                                    <p>No queremos cambiar la esencia de tu negocio ni complicarle la vida a tus camareros con curvas de aprendizaje interminables. Desarrollamos herramientas invisibles pero potentes. Queremos que dejes de perder tiempo apuntando nombres en libretas, que tus zonas de reservado estén gestionadas al milímetro y que los clientes fantasma no te hagan perder dinero.</p>
-                                    <p className="font-medium text-darkText text-lg sm:text-xl italic pt-4">Tú pones el alma y el buen servicio. Nosotros ponemos el orden para que todo funcione como un reloj.</p>
+                                    <p>No queremos cambiar la esencia de tu empresa ni complicarle la vida a tus empleados con curvas de aprendizaje interminables. Desarrollamos herramientas invisibles pero potentes. Sean portales inmobiliarios, agendas legales, sistemas de delivery de barrio o automatización de burocracia.</p>
+                                    <p className="font-medium text-darkText text-lg sm:text-xl italic pt-4">Tú pones el alma y el buen servicio. Nosotros ponemos el código para que todo funcione como un reloj.</p>
                                 </div>
                             </div>
                         </div>
@@ -153,14 +155,50 @@
                     <section id="features" className="py-16 md:py-24 relative z-20">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="text-center mb-12 md:mb-16">
-                                <h2 className="text-3xl md:text-4xl font-bold text-darkText mb-4">Herramientas Diseñadas con Propósito</h2>
+                                <h2 className="text-3xl md:text-4xl font-bold text-darkText mb-4">Catálogo de Soluciones por Nicho</h2>
+                                <p className="text-darkText/70 max-w-2xl mx-auto font-light text-lg">Soluciones específicas diseñadas para resolver los problemas reales de cada sector.</p>
                             </div>
-                            {/* Grid que fuerza la misma altura (h-full en los hijos) */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 md:gap-8 items-stretch">
-                                <FeatureCard title="Reservas en Tiempo Real" description="Motor de reservas inteligente que sincroniza la disponibilidad de mesas al instante." iconColor="primary" svgPath="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                <FeatureCard title="Menú Interactivo" description="Carta digital minimalista en los dispositivos de tus clientes." iconColor="secondary2" svgPath="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/>
-                                <FeatureCard title="Panel para Camareros" description="Interfaz mobile-first ultra rápida para entornos de poca luz." iconColor="secondary1" svgPath="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/>
-                                <FeatureCard title="Métricas Manager" description="Dashboard analítico sin ruido visual." iconColor="darkText" svgPath="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            
+                            {/* Grid Dinámico: 2 columnas arriba, y la 5ª tarjeta ocupa el ancho completo abajo */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 items-stretch">
+                                
+                                <FeatureCard 
+                                    title="1. Inmobiliarias" 
+                                    description="Portales integrales. Subida de propiedades a bases de datos en tiempo real y Panel/CRM inteligente donde llegan los contactos y reservas de visitas de tus clientes." 
+                                    iconColor="primary" 
+                                    svgPath="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
+                                />
+                                
+                                <FeatureCard 
+                                    title="2. Bufetes de Abogados" 
+                                    description="Sistemas de reservas de consultas profesionales. Digitalizamos la agenda de tu despacho para que el cliente reserve online, eliminando el colapso telefónico." 
+                                    iconColor="secondary2" 
+                                    svgPath="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                />
+                                
+                                <FeatureCard 
+                                    title="3. Tiendas Locales" 
+                                    description="Webs ágiles para pequeños comercios. Gestión de pedidos a domicilio o encargos personalizados. Tu cliente pide, tú lo recibes en tu panel listo para preparar." 
+                                    iconColor="secondary1" 
+                                    svgPath="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"
+                                />
+                                
+                                <FeatureCard 
+                                    title="4. Hostelería y Tatuajes" 
+                                    description="Nuestro core base. Motor de reservas de mesas/citas, paneles de camarero, menús interactivos QR y automatización de burocracia (como firmas BOJA en PDF automático)." 
+                                    iconColor="darkText" 
+                                    svgPath="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"
+                                />
+
+                                {/* TARJETA DE ANCHO COMPLETO PARA "DESARROLLO A MEDIDA" */}
+                                <FeatureCard 
+                                    title="5. Adaptabilidad Total (Desarrollo bajo demanda)" 
+                                    description="Bokalia es un sistema vivo. Hacemos trajes a medida. Si nos dices 'necesito una función específica para rellenar este documento' o 'necesito que la web haga esta acción concreta', programamos y añadimos ese módulo exclusivo a tu panel." 
+                                    iconColor="primary" 
+                                    isFullWidth={true}
+                                    svgPath="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+                                />
+
                             </div>
                         </div>
                     </section>
@@ -172,11 +210,16 @@
                                 <div className="flex flex-col md:flex-row justify-between items-center text-left">
                                     <div className="mb-8 md:mb-0 text-center md:text-left w-full md:w-1/2">
                                         <h3 className="text-2xl font-bold mb-2 text-primary">Bokalia Socio</h3>
-                                        <p className="text-darkText/70 font-light">El modelo integral para locales asociados a la plataforma.</p>
+                                        <p className="text-darkText/70 font-light mb-4">El modelo integral de digitalización y desarrollo a medida para empresas locales.</p>
+                                        <ul className="space-y-2 text-sm text-darkText/80 hidden md:block">
+                                            <li>✓ Soluciones específicas por nicho</li>
+                                            <li>✓ Bases de datos y CRM en tiempo real</li>
+                                            <li>✓ Mantenimiento y soporte técnico directo</li>
+                                        </ul>
                                     </div>
                                     <div className="bg-neutral/30 p-6 md:p-8 rounded-2xl w-full md:w-auto flex flex-col items-center md:items-end">
                                         <div className="text-4xl md:text-5xl font-bold text-darkText mb-4">50€<span className="text-base md:text-lg text-darkText/50 font-normal">/mes</span></div>
-                                        <PrimaryActionBtn text="Solicitar Acceso" className="w-full" onClickAction={() => window.location.href = "mailto:bokaliaa@hotmail.com?subject=Solicitud de Acceso - Bokalia Socio"} />
+                                        <PrimaryActionBtn text="Solicitar Presupuesto" className="w-full" onClickAction={() => window.location.href = "mailto:bokaliaa@hotmail.com?subject=Solicitud de Digitalización - Bokalia Socio"} />
                                     </div>
                                 </div>
                             </div>
